@@ -13,10 +13,12 @@ from langchain_community.document_transformers.openai_functions import (
     create_metadata_tagger,
 )
 
+import os
 import key_param
 
 # Set the MongoDB URI, DB, Collection Names
-
+    
+os.environ["GOOGLE_API_KEY"] = key_param.GEMINI_API_KEY
 client = MongoClient(key_param.MONGODB_URI)
 dbName = "book_mongodb_chunks"
 collectionName = "chunked_data"
