@@ -23,6 +23,7 @@ client = MongoClient(key_param.MONGODB_URI)
 dbName = "book_mongodb_chunks"
 collectionName = "chunked_data"
 collection = client[dbName][collectionName]
+collection.delete_many({}) #prevents duplicate entries in the collection when running the script multiple times
 
 loader = PyPDFLoader(key_param.SOURCE_FILE_PATH)
 pages = loader.load()
@@ -49,7 +50,7 @@ schema = {
 }
 
 chat_gpt = ChatOpenAI(
-    api_key= key_param.LLM_API_KEY, temperature = 0, model="gpt-3.5-turbo"
+    api_key= key_param.GPT_API_KEY, temperature = 0, model="gpt-3.5-turbo"
 )
 gemini = ChatGoogleGenerativeAI(
     model="gemini-3.7-flash",
@@ -58,6 +59,7 @@ gemini = ChatGoogleGenerativeAI(
 )
 structured_llm = gemini.with_structured_output(PageMetadata)
 
+#You can switch here between GPT and Gemini
 document_transformer = create_metadata_tagger(metadata_schema=schema, llm=gemini)
 
 #docs = document_transformer.transform_documents(cleaned_pages)
