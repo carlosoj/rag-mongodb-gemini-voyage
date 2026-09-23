@@ -60,9 +60,9 @@ def extract_meaningful_content_from_pdf(
 
 # 1 Database Setup
 client = MongoClient(key_param.MONGODB_URI)
-dbName = "rag_example"
-collectionName = "chunked_data"
-collection = client[dbName][collectionName]
+db_name = "rag_example"
+collection_name = "chunked_data"
+collection = client[db_name][collection_name]
 
 # Clear existing entries to prevent duplicates during re-runs
 collection.delete_many({}) 
@@ -99,6 +99,6 @@ embeddings = VoyageAIEmbeddings(
 )
 
 # 4 insert data
-vectorStore = MongoDBAtlasVectorSearch.from_documents(
+vector_store = MongoDBAtlasVectorSearch.from_documents(
     split_docs, embeddings, collection=collection
 )
