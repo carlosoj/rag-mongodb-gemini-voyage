@@ -9,6 +9,7 @@ load_dotenv()
 env_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
+
 def _get_required_env(var_name: str) -> str:
     """Retrieve an environment variable or raise an error if missing."""
     value = os.getenv(var_name)
@@ -18,6 +19,7 @@ def _get_required_env(var_name: str) -> str:
             f"Ensure it is defined in your environment or .env file."
         )
     return value
+
 
 # Database & API Credentials
 MONGODB_URI: str = _get_required_env("MONGODB_URI")
