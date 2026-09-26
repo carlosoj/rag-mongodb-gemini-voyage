@@ -22,7 +22,6 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger("rag_ingest")
-os.environ["GOOGLE_API_KEY"] = key_param.GEMINI_API_KEY
 
 
 class PageMetadata(BaseModel):
@@ -51,9 +50,7 @@ def extract_meaningful_content_from_pdf(
         if len(page.page_content.split(" ")) > min_word_count:
             cleaned_pages.append(page)
     logger.info(
-        "Loaded %d pages (Filtered out %d short/empty pages)",
-        len(cleaned_pages),
-        len(pages) - len(cleaned_pages),
+        "Loaded %d pages (Filtered out %d short/empty pages)", len(cleaned_pages), len(pages) - len(cleaned_pages),
     )
     return cleaned_pages
 
@@ -70,7 +67,11 @@ collection.delete_many({})
 # 2 Get useful content from the PDF and filter out low-content pages
 raw_pages = extract_meaningful_content_from_pdf(key_param.SOURCE_FILE_PATH)
 
-# 3 Create vector embeddings from the PDF and attach metadata to each chunk
+# 3 Split raw pages into chunks
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=150)
+split_docs = text_splitter.split_documents(raw_pages)
+
+# 4. Extract structured metadata per chunk using the LLM
 gpt = ChatOpenAI(api_key=key_param.GPT_API_KEY, temperature=0, model="gpt-3.5-turbo")
 gemini = ChatGoogleGenerativeAI(
     model="gemini-3.7-flash",
@@ -78,10 +79,9 @@ gemini = ChatGoogleGenerativeAI(
 )
 
 selected_llm = gemini  # You can switch here between GPT and Gemini
-
 structured_llm = selected_llm.with_structured_output(PageMetadata)
 
-docs = []
+enriched_docs = []
 for page in raw_pages:
     try:
         metadata_res = structured_llm.invoke(page.page_content)
@@ -89,16 +89,15 @@ for page in raw_pages:
         page.metadata.update(metadata_res.model_dump())
     except Exception as e:
         logger.error(f"Failed to extract metadata for page: {e}")
-    docs.append(page)
+    enriched_docs.append(page)
 
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=150)
-split_docs = text_splitter.split_documents(docs)
-
+# 5. Generate embeddings and persist to MongoDB
 embeddings = VoyageAIEmbeddings(
     voyage_api_key=key_param.VOYAGE_API_KEY, model="voyage-3.5-lite"
 )
 
-# 4 insert data
 vector_store = MongoDBAtlasVectorSearch.from_documents(
-    split_docs, embeddings, collection=collection
+    documents=enriched_docs, embedding=embeddings, collection=collection
 )
+
+logger.info("Successfully ingested %d chunks into MongoDB.", len(enriched_docs))

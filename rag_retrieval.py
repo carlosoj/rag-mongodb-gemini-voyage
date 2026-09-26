@@ -21,11 +21,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger("rag_retrieval")
 
-# Environment setup
-# os.environ["GOOGLE_API_KEY"] = key_param.GEMINI_API_KEY
-# login(key_param.HF_TOKEN)
-
-
 # 1. Initialize Vector Store Connection
 DB_NAME = "rag_example"
 COLLECTION_NAME = "chunked_data"
