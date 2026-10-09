@@ -1,23 +1,41 @@
-# Minimal RAG Pipeline with MongoDB Atlas, Gemini, and Voyage AI
+# RAG Pipeline with MongoDB Atlas, Gemini, and Voyage AI
 
-A clean, educational, and production-minded implementation of a Retrieval-Augmented Generation (RAG) system built using Python, LangChain, MongoDB Atlas Vector Search, Google Gemini, and Voyage AI embeddings.
+A clean, production-minded implementation of a Retrieval-Augmented Generation (RAG) system built with Python, LangChain, MongoDB Atlas Vector Search, Google Gemini, and Voyage AI embeddings.
+
+![RAG pipeline architecture](docs/minimal-rag-architecture.png)
+
+---
+
+## What's different from the original course
+
+This project started from [MongoDB University's RAG course](https://learn.mongodb.com/). The original examples were tightly coupled to OpenAI and used older LangChain APIs. I rebuilt them with:
+
+- **Google Gemini** for generation and metadata extraction (instead of OpenAI)
+- **Voyage AI** for embeddings (instead of OpenAI embeddings)
+- **Current LangChain (LCEL)** instead of legacy chains
+- Fixed issues in the original embeddings setup
+- Added structured metadata extraction with Pydantic schemas
+
+The goal is a working reference for anyone learning RAG with a modern, non-OpenAI stack.
 
 ---
 
 ## Architecture & Workflow
 
-1. **Ingestion (`rag_ingest.py`)**: Loads a source PDF document, filters out low-content pages, splits text into optimal chunks, extracts structured metadata (title, keywords, code snippets presence) using Gemini and Pydantic, and stores them alongside vector embeddings in MongoDB Atlas.
-2. **Retrieval (`rag_retrieval.py`)**: Queries the vector database using similarity search with pre-filtering, constructs contextual prompts via LangChain Expression Language (LCEL), and synthesizes answers using Gemini.
+1. **Ingestion (`rag_ingest.py`)**: Loads a source PDF, filters out low-content pages, splits text into chunks, extracts structured metadata (title, keywords, code snippets presence) using Gemini and Pydantic, and stores chunks alongside vector embeddings in MongoDB Atlas.
+2. **Retrieval (`rag_retrieval.py`)**: Queries the vector database using similarity search with pre-filtering, constructs contextual prompts via LangChain Expression Language (LCEL), and synthesizes grounded answers using Gemini.
 
 ---
 
 ## Tech Stack
 
-* **Orchestration**: LangChain (`langchain`, `langchain-mongodb`, `langchain-google-genai`, `langchain-voyageai`)
-* **Vector Database**: MongoDB Atlas Vector Search (`pymongo`)
-* **Embeddings**: Voyage AI (`voyage-3.5-lite`)
-* **LLM & Metadata Extraction**: Google Gemini (`gemini-3.7-flash`)
-* **Validation**: Pydantic v2
+- **Orchestration**: LangChain (`langchain`, `langchain-mongodb`, `langchain-google-genai`, `langchain-voyageai`)
+- **Vector Database**: MongoDB Atlas Vector Search (`pymongo`)
+- **Embeddings**: Voyage AI (`voyage-3.5-lite`)
+- **LLM & Metadata Extraction**: Google Gemini (`gemini-3.7-flash`)
+- **Validation**: Pydantic v2
+
+> **Note**: Model identifiers in `key_param.py` are the source of truth. If a model name in this README is out of date, the code is correct — this is just documentation.
 
 ---
 
@@ -28,8 +46,9 @@ A clean, educational, and production-minded implementation of a Retrieval-Augmen
 ├── rag_retrieval.py    # Vector search retrieval and RAG chain execution
 ├── key_param.py        # Centralized configuration and environment loader
 ├── requirements.txt    # Project dependencies
-└── .env.example        # Required environment variables template
-```
+├── .env.example        # Required environment variables template
+└── docs/
+    └── minimal-rag-architecture.png
 
 ---
 
@@ -38,8 +57,8 @@ A clean, educational, and production-minded implementation of a Retrieval-Augmen
 ### 1. Clone and Install Dependencies
 
 ```bash
-git clone <repository-url>
-cd <repository-directory>
+git clone https://github.com/carlosoj/rag-mongodb-gemini-voyage.git
+cd rag-mongodb-gemini-voyage
 pip install -r requirements.txt
 ```
 ### 2. Configure Environment Variables
